@@ -418,34 +418,6 @@ func ClientHandshake(request *protocol.RequestHeader, reader io.Reader, writer i
 		common.Must2(b.WriteString(account.Password))
 	}
 
-	if err := buf.WriteAllBytes(writer, b.Bytes()); err != nil {
-		return nil, err
-	}
-
-	b.Clear()
-	if _, err := b.ReadFullFrom(reader, 2); err != nil {
-		return nil, err
-	}
-
-	if b.Byte(0) != socks5Version {
-		return nil, newError("unexpected server version: ", b.Byte(0)).AtWarning()
-	}
-	if b.Byte(1) != authByte {
-		return nil, newError("auth method not supported.").AtWarning()
-	}
-
-	if authByte == authPassword {
-		b.Clear()
-		if _, err := b.ReadFullFrom(reader, 2); err != nil {
-			return nil, err
-		}
-		if b.Byte(1) != 0x00 {
-			return nil, newError("server rejects account: ", b.Byte(1))
-		}
-	}
-
-	b.Clear()
-
 	command := byte(cmdTCPConnect)
 	if request.Command == protocol.RequestCommandUDP {
 		command = byte(cmdUDPPort)
@@ -460,16 +432,8 @@ func ClientHandshake(request *protocol.RequestHeader, reader io.Reader, writer i
 	}
 
 	b.Clear()
-	if _, err := b.ReadFullFrom(reader, 3); err != nil {
-		return nil, err
-	}
 
-	resp := b.Byte(1)
-	if resp != 0x00 {
-		return nil, newError("server rejects request: ", resp)
-	}
-
-	b.Clear()
+	return nil, nil
 
 	address, port, err := addrParser.ReadAddressPort(b, reader)
 	if err != nil {

@@ -120,6 +120,13 @@ func (c *Client) Process(ctx context.Context, link *transport.Link, dialer inter
 		}
 		responseFunc = func() error {
 			defer timer.SetTimeout(p.Timeouts.UplinkOnly)
+			b := buf.New()
+			_ ,err := b.ReadFullFrom(conn, 12)
+			if (err !=nil ||  b.Byte(0) != socks5Version  || b.Byte(3) !=  0x00) {
+				return newError("Error from upstream socks server").AtWarning().Base(err)
+			}
+			b.Release()
+
 			return buf.Copy(buf.NewReader(conn), link.Writer, buf.UpdateActivity(timer))
 		}
 	} else if request.Command == protocol.RequestCommandUDP {
