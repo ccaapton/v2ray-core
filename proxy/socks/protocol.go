@@ -398,14 +398,13 @@ func (w *UDPWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
-func ClientHandshake(request *protocol.RequestHeader, reader io.Reader, writer io.Writer) (*protocol.RequestHeader, error) {
+func ClientHandshake(request *protocol.RequestHeader, reader io.Reader, writer io.Writer) (k *protocol.RequestHeader, e error, buff *buf.Buffer) {
 	authByte := byte(authNotRequired)
 	if request.User != nil {
 		authByte = byte(authPassword)
 	}
 
 	b := buf.New()
-	defer b.Release()
 
 	common.Must2(b.Write([]byte{socks5Version, 0x01, authByte}))
 	if authByte == authPassword {
@@ -424,20 +423,14 @@ func ClientHandshake(request *protocol.RequestHeader, reader io.Reader, writer i
 	}
 	common.Must2(b.Write([]byte{socks5Version, command, 0x00 /* reserved */}))
 	if err := addrParser.WriteAddressPort(b, request.Address, request.Port); err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
-	if err := buf.WriteAllBytes(writer, b.Bytes()); err != nil {
-		return nil, err
-	}
-
-	b.Clear()
-
-	return nil, nil
+	return nil, nil, b
 
 	address, port, err := addrParser.ReadAddressPort(b, reader)
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
 	if request.Command == protocol.RequestCommandUDP {
@@ -447,8 +440,8 @@ func ClientHandshake(request *protocol.RequestHeader, reader io.Reader, writer i
 			Address: address,
 			Port:    port,
 		}
-		return udpRequest, nil
+		return udpRequest, nil, nil
 	}
 
-	return nil, nil
+	return nil, nil, nil
 }

@@ -99,7 +99,7 @@ func (c *Client) Process(ctx context.Context, link *transport.Link, dialer inter
 	if err := conn.SetDeadline(time.Now().Add(p.Timeouts.Handshake)); err != nil {
 		newError("failed to set deadline for handshake").Base(err).WriteToLog(session.ExportIDToError(ctx))
 	}
-	udpRequest, err := ClientHandshake(request, conn, conn)
+	udpRequest, err, buff := ClientHandshake(request, conn, conn)
 	if err != nil {
 		return newError("failed to establish connection to server").AtWarning().Base(err)
 	}
@@ -116,7 +116,12 @@ func (c *Client) Process(ctx context.Context, link *transport.Link, dialer inter
 	if request.Command == protocol.RequestCommandTCP {
 		requestFunc = func() error {
 			defer timer.SetTimeout(p.Timeouts.DownlinkOnly)
-			return buf.Copy(link.Reader, buf.NewWriter(conn), buf.UpdateActivity(timer))
+			mb, _ := link.Reader.ReadMultiBuffer()
+			mb2, _ := buf.MergeMulti(buf.MultiBuffer{buff}, mb)
+			w := buf.NewWriter(conn)
+			w.WriteMultiBuffer(mb2)
+			buff.Release()
+			return buf.Copy(link.Reader, w, buf.UpdateActivity(timer))
 		}
 		responseFunc = func() error {
 			defer timer.SetTimeout(p.Timeouts.UplinkOnly)
