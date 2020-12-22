@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package v2ray.core.transport.internet.domainsocket;
 option csharp_namespace = "V2Ray.Core.Transport.Internet.DomainSocket";
-option go_package = "domainsocket";
+option go_package = "v2ray.com/core/transport/internet/domainsocket";
 option java_package = "com.v2ray.core.transport.internet.domainsocket";
 option java_multiple_files = true;
 
@@ -15,4 +15,10 @@ message Config {
  // Traditionally Unix domain socket is file system based. Abstract domain socket can be used without acquiring file lock. 
  bool abstract = 2;
  v2ray.core.common.serial.TypedMessage header_settings = 3;
+  // Path of the domain socket. This overrides the IP/Port parameter from
+  // upstream caller.
+  // connect(2) or bind(2) when using abstract UDS.
+  bool padding = 4;
+  bool acceptProxyProtocol = 5;
+>>>>>>> origin/master
 }
