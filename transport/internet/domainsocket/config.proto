@@ -20,5 +20,4 @@ message Config {
   // connect(2) or bind(2) when using abstract UDS.
   bool padding = 4;
   bool acceptProxyProtocol = 5;
->>>>>>> origin/master
 }
