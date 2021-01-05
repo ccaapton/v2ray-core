@@ -26,7 +26,6 @@ type Listener struct {
 	addConn   internet.ConnHandler
 	locker    *fileLocker
 	authConfig internet.ConnectionAuthenticator
-	xtlsConfig *goxtls.Config
 }
 
 func Listen(ctx context.Context, address net.Address, port net.Port, streamSettings *internet.MemoryStreamConfig, handler internet.ConnHandler) (internet.Listener, error) {
