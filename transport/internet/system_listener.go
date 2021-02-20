@@ -50,7 +50,7 @@ func (dl *DefaultListener) Listen(ctx context.Context, addr net.Addr, sockopt *S
 		network = addr.Network()
 		address = addr.String()
 		lc.Control = getControlFunc(ctx, sockopt, dl.controllers)
-		lc.KeepAlive = 300
+		lc.KeepAlive = 300000000000
 	case *net.UnixAddr:
 		lc.Control = nil
 		network = addr.Network()
